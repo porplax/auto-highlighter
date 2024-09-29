@@ -457,17 +457,17 @@ def find_reference(input, accuracy):
     average, greatest = analyzer.get_ref()
 
     # https://stackoverflow.com/questions/49867345/how-to-deal-with-inf-values-when-computting-the-average-of-values-of-a-list-in-p
-    log.info(f'[pink]average dB:[/] {np.mean(average[np.isfinite(average)], dtype=np.float64)} ...')
+    log.info(f'[cyan]average dB:[/] {np.mean(average[np.isfinite(average)], dtype=np.float64)} ...')
     log.info(f'[blue]greatest dB:[/] {greatest} ...')
 
     console.rule(title='[dim]using this info[/]', align='left')
     console.print('it is recommended to have your [green]target dB[/] set close to that of the [blue]greatest dB[/].\n'
                   f'for example, start off at a [green]target dB[/] of {float(round(greatest) - 1)}. [dim](based on the [/][orange]greatest dB[/][dim] found)[/]\n'
-                  "setting the [green]target decibel[/] closer to the [blue]greatest dB[/] will give you better results.\n\n"
-                  "[italic]however[/] setting your [green]target dB[/] too close to the [orange]greatest dB[/] will highlight less and less results.\n"
+                  "setting the [green]target dB[/] closer to the [blue]greatest dB[/] will give you better results.\n\n"
+                  "[italic]however[/] setting your [green]target dB[/] too close to the [blue]greatest dB[/] will highlight less and less results.\n"
                   "setting it higher than your [blue]greatest dB[/] will give no results at all.\n\n"
-                  "having it closer to your [pink]average dB[/] will create more results.\n"
-                  "and having it too close could potientially consume a lot of disk space.\n")
+                  "having it closer to your [cyan]average dB[/] will create more results.\n"
+                  "and having it too close could potientially consume a lot of disk space.")
     console.rule()
 
 
