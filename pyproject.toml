@@ -1,13 +1,20 @@
 [tool.poetry]
-name = "twitch-highlighter"
+name = "vod-highlighter"
 version = "0.1.0"
-description = ""
+description = "tool to assist finding moments in video. (mainly twitch VODs)"
 authors = ["porplax <saynemarsh9@gmail.com>"]
 readme = "README.md"
+packages = [{include = "highlighter"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+numpy = "^2.1.1"
+typer = "^0.12.5"
+opencv-python = "^4.10.0.84"
+pillow = "^10.4.0"
 
+[tool.poetry.scripts]
+vod-highlighter = 'highlighter:cli'
 
 [build-system]
 requires = ["poetry-core"]
