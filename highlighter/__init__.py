@@ -119,76 +119,81 @@ class VideoAnalysis:
         second = 0
         with Progress() as progress:
             duration_task = progress.add_task('[dim]processing video ...', total=int(length))
-            while success:
-                if frame_count % fps == 0:
-                    # todo: counting seconds this way is not accurate. using opencv's way created errors, so i'll look into fixing this in the future.
-                    # this will do for now.
-                    second += 1
-                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    image_pil = Image.fromarray(image)
-                    image_reduced = image_pil.reduce(100) # this is reduced to improve speed.
-                    image_array = np.asarray(image_reduced)
+            try:
+                while success:
+                    if frame_count % fps == 0:
+                        # todo: counting seconds this way is not accurate. using opencv's way created errors, so i'll look into fixing this in the future.
+                        # this will do for now.
+                        second += 1
+                        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        image_pil = Image.fromarray(image)
+                        image_reduced = image_pil.reduce(100)  # this is reduced to improve speed.
+                        image_array = np.asarray(image_reduced)
 
-                    average_r = []
-                    average_g = []
-                    average_b = []
-                    for row in image_array:
-                        # todo: this is EXTREMELY inefficient! please find another method soon.
-                        for color in row:
-                            r, g, b = color[0], color[1], color[2]
-                            average_r.append(r)
-                            average_g.append(g)
-                            average_b.append(b)
+                        average_r = []
+                        average_g = []
+                        average_b = []
+                        for row in image_array:
+                            # todo: this is EXTREMELY inefficient! please find another method soon.
+                            for color in row:
+                                r, g, b = color[0], color[1], color[2]
+                                average_r.append(r)
+                                average_g.append(g)
+                                average_b.append(b)
 
-                    # get average of all RGB values in the array.
-                    r = np.mean(average_r)
-                    g = np.mean(average_g)
-                    b = np.mean(average_b)
+                        # get average of all RGB values in the array.
+                        r = np.mean(average_r)
+                        g = np.mean(average_g)
+                        b = np.mean(average_b)
 
-                    # todo: not really important but this calculation is expensive.
-                    # maybe add an option for the user to prioritize speed over accuracy.
-                    luminance = np.sqrt((0.299 * r**2) + (0.587 * g**2) + (0.114 * b**2))
-                    if luminance >= self.target_brightness:
+                        # todo: not really important but this calculation is expensive.
+                        # maybe add an option for the user to prioritize speed over accuracy.
+                        luminance = np.sqrt((0.299 * r ** 2) + (0.587 * g ** 2) + (0.114 * b ** 2))
+
                         if not self.maximum_depth is None:
                             if len(list(result.keys())) == self.maximum_depth:
                                 log.warning('max amount of highlights reached.')
                                 progress.update(duration_task, completed=True)
-                                self.wave_data.close()
                                 return result
-                        if not self.jit:
-                            if any(previous in captured for previous in range(second-self.start_point, second)):
-                                # avoid highlighting moments that are too close to each other.
-                                captured.append(second)
-                                progress.update(duration_task,
-                                                description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
-                            else:
-                                captured.append(second)
-                                result[second] = {
-                                    'time': f'{second}',
-                                    'luminance': luminance
-                                }
-                        else:
-                            if any(previous in captured for previous in range(second-self.start_point, second)):
-                                captured.append(second)
-                                progress.update(duration_task,
-                                                description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
-                            else:
-                                captured.append(second)
-                                result[second] = {
-                                    'time': f'{second}',
-                                    'luminance': luminance
-                                }
-                                p = subprocess.Popen(
-                                    f'ffmpeg -i \"{self.filename}\" -ss {second - self.start_point} -to {second + self.end_point} -c copy {self.compile_output}/{second}-({str(datetime.timedelta(seconds=second)).replace(":", " ")}).mp4',
-                                stdout=subprocess.DEVNULL,
-                                stderr=subprocess.STDOUT)
-                                p.wait()
-                                p.kill()
-                                progress.update(duration_task, description=f'[bold yellow]{len(list(result.keys()))}[/] [dim]highlighted moments so far ...')
 
-                success, image = self.vidcap.read()
-                progress.update(duration_task, advance=1.0)
-                frame_count += 1
+                        if luminance >= self.target_brightness:
+                            if not self.jit:
+                                if any(previous in captured for previous in range(second - self.start_point, second)):
+                                    # avoid highlighting moments that are too close to each other.
+                                    captured.append(second)
+                                    progress.update(duration_task,
+                                                    description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
+                                else:
+                                    captured.append(second)
+                                    result[second] = {
+                                        'time': f'{second}',
+                                        'luminance': luminance
+                                    }
+                            else:
+                                if any(previous in captured for previous in range(second - self.start_point, second)):
+                                    captured.append(second)
+                                    progress.update(duration_task,
+                                                    description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
+                                else:
+                                    captured.append(second)
+                                    result[second] = {
+                                        'time': f'{second}',
+                                        'luminance': luminance
+                                    }
+                                    p = subprocess.Popen(
+                                        f'ffmpeg -i \"{self.filename}\" -ss {second - self.start_point} -to {second + self.end_point} -c copy {self.compile_output}/{second}-({str(datetime.timedelta(seconds=second)).replace(":", " ")}).mp4',
+                                        stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.STDOUT)
+                                    p.wait()
+                                    p.kill()
+                                    progress.update(duration_task,
+                                                    description=f'[bold yellow]{len(list(result.keys()))}[/] [dim]highlighted moments so far ...')
+
+                    success, image = self.vidcap.read()
+                    progress.update(duration_task, advance=1.0)
+                    frame_count += 1
+            except KeyboardInterrupt:
+                return result
         return result
 
 
@@ -253,13 +258,13 @@ class AudioAnalysis:
 
                 decibels_iter = iter(decibels)
                 for ms, db in enumerate(decibels_iter):
+                    if not self.maximum_depth is None:
+                        if len(list(result.keys())) == self.maximum_depth:
+                            log.warning('max amount of highlights reached.')
+                            progress.update(duration_task, completed=True)
+                            self.wave_data.close()
+                            return result
                     if db >= self.target_decibel:
-                        if not self.maximum_depth is None:
-                            if len(list(result.keys())) == self.maximum_depth:
-                                log.warning('max amount of highlights reached.')
-                                progress.update(duration_task, completed=True)
-                                self.wave_data.close()
-                                return result
                         if any(previous in captured for previous in range(_i-self.start_point, _i)):
                             # avoid highlighting moments that are too close to each other.
                             captured.append(_i)
@@ -375,8 +380,8 @@ def callback():
               is_flag=True)
 def analyze(input, output, target, before, after, accuracy, compile, max_highlights, detect_with_video, target_brightness, just_in_time_compilation):
     """analyze VOD for any highlights."""
-
     # todo: may be better to detect video length and then determine if the set target dB will be a problem.
+    console.clear()
     if 60.0 > target > 50.0:
         log.warning(f'[red italic]target dB: {target} < 60.0 is probably [bold]too low[/] !!![/]\n'
                     '[red bold reverse]this might cause the highlighter to create too many clips and could eat up disk space![/]\n\n'
@@ -447,6 +452,7 @@ def analyze(input, output, target, before, after, accuracy, compile, max_highlig
               type=int, required=False, default=1000)
 def find_reference(input, accuracy):
     """find average decibel in video. [italic dim](if you're unsure what target decibel to aim for, use this)"""
+    console.clear()
     log.info(f'using [bold]"{input}"[/] as [cyan]input[/] ...')
     log.info(f'converting [bold]"{input}"[/] to [purple].wav[/] file ...')
 
@@ -479,7 +485,6 @@ typer_click_object.add_command(analyze, "analyze")
 typer_click_object.add_command(find_reference, "find-reference")
 
 def cli():
-    console.clear()
     typer_click_object()
 
 if __name__ == '__main__':

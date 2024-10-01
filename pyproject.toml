@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "vod-highlighter"
 version = "0.1.0"
-description = "tool to assist finding moments in video. (mainly twitch VODs)"
+description = "tool to assist finding clips/moments in video. (mainly twitch VODs)"
 authors = ["porplax <saynemarsh9@gmail.com>"]
 readme = "README.md"
 packages = [{include = "highlighter"}]
