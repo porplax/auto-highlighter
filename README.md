@@ -1,5 +1,5 @@
 <p align="center">
-    <img align="center" src="http://porplaza.xyz/img/vod-highlighter.svg">
+    <img align="center" src="http://porplaza.xyz/img/vod-highlighter-a.png">
 </p>
 
 <p align="center">
