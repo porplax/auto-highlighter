@@ -1,5 +1,5 @@
 <p align="center">
-    <img align="center" src="https://iili.io/dDlJqoG.png">
+    <img align="center" src="vod-icon.svg">
 </p>
 
 <p align="center">

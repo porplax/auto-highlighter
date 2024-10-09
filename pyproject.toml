@@ -13,6 +13,8 @@ typer = "^0.12.5"
 opencv-python = "^4.10.0.84"
 pillow = "^10.4.0"
 vosk = "^0.3.45"
+nicegui = "^2.3.0"
+pycparser = "^2.22"
 
 [tool.poetry.scripts]
 vod-highlighter = 'highlighter:cli'

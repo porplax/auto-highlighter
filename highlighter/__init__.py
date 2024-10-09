@@ -194,14 +194,14 @@ def analyze(input, output, target, before, after, accuracy, compile, max_highlig
 @click.option('--accuracy', '-a',
               help='how accurate the highlighter is. (recommended to NOT mess with this)',
               type=int, required=False, default=1000)
-def find_reference(video_input, accuracy):
+def find_reference(input, accuracy):
     """find average decibel in video. [italic dim](if you're unsure what target decibel to aim for, use this)"""
     console.clear()
-    log.info(f'using [bold]"{video_input}"[/] as [cyan]input[/] ...')
-    log.info(f'converting [bold]"{video_input}"[/] to [purple].wav[/] file ...')
+    log.info(f'using [bold]"{input}"[/] as [cyan]input[/] ...')
+    log.info(f'converting [bold]"{input}"[/] to [purple].wav[/] file ...')
 
     analyzer = analysis.AudioAnalysis('', 0.0, '', accuracy, 0, 0)
-    analyzer.convert_from_video(video_input)
+    analyzer.convert_from_video(input)
     log.info(analyzer)
 
     average, greatest = analyzer.get_ref()
@@ -233,4 +233,3 @@ def cli():
 
 if __name__ == '__main__':
     cli()
-

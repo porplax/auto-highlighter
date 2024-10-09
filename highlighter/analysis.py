@@ -272,13 +272,14 @@ class AudioAnalysis:
             duration_task = progress.add_task('[dim]getting reference dB ...', total=int(self.length))
             for _i in range(0, int(self.length)):
                 buffered = self._read()
-                chunks = self._split(buffered)
+                chunks = self._split(buffered[1])
 
                 decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
                 average = np.mean(decibels, dtype=np.float64)
 
-                if average > greatest_db:
-                    greatest_db = average
+                for db in decibels:
+                    if db > greatest_db:
+                        greatest_db = db
 
                 average_db_array = np.append(average_db_array, average)
                 progress.update(duration_task, advance=1.0)
