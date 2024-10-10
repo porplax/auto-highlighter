@@ -1,3 +1,4 @@
+import datetime
 import json
 import subprocess
 
@@ -11,7 +12,15 @@ class Compiler:
         self.start_point = start_point
         self.end_point = end_point
 
-    def compile(self, result: dict):
+    def compile(self, time: int):
+        point = str(datetime.timedelta(seconds=time))
+        p = subprocess.Popen(
+            f'ffmpeg -i \"{self.video_path}\" -ss {time - self.start_point} -to {time + self.end_point} -c copy \"{self.compile_output}/{time}-({point.replace(":", " ")}).mp4\"')
+        p.wait()
+        p.kill()
+
+    # todo: this function could be improved, move most of this into `__init__.py` instead.
+    def compile_all(self, result: dict):
         highlights_json = open(self.compile_output + '/highlights.json', 'x')
         highlights_json.write(json.dumps(result, indent=4))
         highlights_json.close()

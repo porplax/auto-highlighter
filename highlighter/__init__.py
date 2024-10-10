@@ -185,7 +185,7 @@ def analyze(input, output, target, before, after, accuracy, compile, max_highlig
 
         log.info(f'i am now compiling to {output}')
         compiler = generator.Compiler(input, output, before, after)
-        compiler.compile(moments)
+        compiler.compile_all(moments)
 
     log.info('[green]finished![/]')
 
