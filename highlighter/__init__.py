@@ -108,13 +108,15 @@ def callback():
               type=int, required=False, default=125,
               show_default=True)
 @click.option('--just-in-time-compilation', '-jit',
-              help='instead of compiling after analysis, compile as it find highlights (only available with video detection)',
+              help='instead of compiling after analysis, compile as it find highlights. (only available with video detection)',
               is_flag=True)
+@click.option('--disable-ffmpeg-output', '--no-ffmpeg', '-nf',
+              help='disables ffmpeg from outputting to terminal.')
 @click.option('--keywords', '-k',
               help='uses vosk speech recognition to spot any keywords. highly experimental.',
               multiple=True, required=False, default=None)
 def analyze(input, output, target, before, after, accuracy, compile, max_highlights, detect_with_video,
-            target_brightness, just_in_time_compilation, keywords):
+            target_brightness, just_in_time_compilation, disable_ffmpeg_output, keywords):
     """analyze VOD for any highlights."""
     # todo: may be better to detect video length and then determine if the set target dB will be a problem.
     console.clear()
@@ -165,7 +167,7 @@ def analyze(input, output, target, before, after, accuracy, compile, max_highlig
                                           maximum_depth=max_highlights)
 
     log.info('now analyzing for any moments ...')
-    moments = analyzer.analyze()
+    moments = analyzer.analyze_cli()
 
     if compile and not just_in_time_compilation:
         path = pathlib.Path(output)

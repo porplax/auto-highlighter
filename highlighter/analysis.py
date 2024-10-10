@@ -184,6 +184,19 @@ class AudioAnalysis:
         return np.array_split(np.array(buffer), self.accuracy)
 
     def convert_from_video(self, video_path):
+        """
+        Converts a video to .wav format using ffmpeg,
+        saves it to a temporary folder and opens it as wave file.
+
+        Be careful of memory consumption. Close it when it is discarded.
+
+        Returns
+        -------------------
+        `wave_data` - wave file object.
+
+        :param video_path:
+        :return:
+        """
         audio_out = TEMP_DIR.name + '/audio.wav'
         self.video_path = video_path
 
@@ -194,8 +207,57 @@ class AudioAnalysis:
 
         self.wave_data = wave.open(self.filename, 'r')
         self.length = self.wave_data.getnframes() / self.wave_data.getframerate()
+        return self.wave_data
 
-    def analyze(self):
+    def capture(self):
+        """
+        A generator that captures a highlight.
+
+        If a possible highlight was detected, it will return the second
+        of where it happened in the video. Otherwise, it will return
+        None.
+
+        Upon finishing, it will raise a StopIteration exception.
+
+        Returns
+        -------------------
+        `second` - time in video where the highlight occurred.
+        """
+        captured = []
+
+        for _i in range(0, int(self.length)):
+            buffered = self._read()
+            chunks = self._split(buffered[1])
+
+            # todo: not important, but this is expensive. could probably be less so.
+            """
+            decibels:
+            
+            The algorithm below converts 1000 chunks into a readable dB.
+            But to do this, it first does a bunch of operations.
+            
+            Square it then, get the mean, get the square root, then log10 over each one.
+            
+            I'm leaving this comment here as I could possibly improve this in the future. :P
+            """
+            decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
+            decibels_iter = iter(decibels)
+
+            for ms, db in enumerate(decibels_iter):
+                if db >= self.target_decibel:
+                    if any(previous in captured for previous in range(_i - self.start_point, _i)):
+                        # avoid highlighting moments that are too close to each other.
+                        captured.append(_i)
+                        yield None
+                    else:
+                        captured.append(_i)
+                        yield _i
+            yield None
+
+        self.wave_data.close()
+
+    # todo: the below function is obsolete and taking up space, instead use the above function and integrate into `__init__.py`
+    def analyze_cli(self):
         result = {}
         captured = []
 
