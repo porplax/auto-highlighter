@@ -5,6 +5,7 @@ import os
 import pathlib
 import struct
 import subprocess
+import tempfile
 import wave
 
 import cv2
@@ -14,7 +15,7 @@ from rich.progress import Progress
 from rich.prompt import Confirm
 from vosk import KaldiRecognizer
 
-from . import console, log, TEMP_DIR, model
+from . import console, log, model
 
 
 class VideoAnalysis:
@@ -158,6 +159,8 @@ class AudioAnalysis:
         self.accuracy = accuracy
         self.start_point = start_point
         self.end_point = end_point
+        self.seek = 0
+        self.temp_dir = tempfile.TemporaryDirectory()
 
         self.maximum_depth = None
         if 'maximum_depth' in kwargs.keys():
@@ -197,7 +200,7 @@ class AudioAnalysis:
         :param video_path:
         :return:
         """
-        audio_out = TEMP_DIR.name + '/audio.wav'
+        audio_out = self.temp_dir.name + '/audio.wav'
         self.video_path = video_path
 
         p = subprocess.Popen(f'ffmpeg -i \"{video_path}\" -ab 160k -ac 2 -ar 44100 -vn {audio_out}',
@@ -232,12 +235,12 @@ class AudioAnalysis:
             # todo: not important, but this is expensive. could probably be less so.
             """
             decibels:
-            
+
             The algorithm below converts 1000 chunks into a readable dB.
             But to do this, it first does a bunch of operations.
-            
+
             Square it then, get the mean, get the square root, then log10 over each one.
-            
+
             I'm leaving this comment here as I could possibly improve this in the future. :P
             """
             decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
@@ -248,11 +251,12 @@ class AudioAnalysis:
                     if any(previous in captured for previous in range(_i - self.start_point, _i)):
                         # avoid highlighting moments that are too close to each other.
                         captured.append(_i)
-                        yield None
+                        yield -1
                     else:
                         captured.append(_i)
                         yield _i
-            yield None
+            yield -1
+            self.seek = _i
 
         self.wave_data.close()
 
