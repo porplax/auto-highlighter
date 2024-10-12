@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vod-highlighter"
-version = "0.3.0-alpha"
+version = "0.3.2-alpha"
 description = "tool to generate clips from a video. (mainly twitch VODs)"
 authors = ["porplax <saynemarsh9@gmail.com>"]
 readme = "README.md"
