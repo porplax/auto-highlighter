@@ -203,7 +203,7 @@ class AudioAnalysis:
         audio_out = self.temp_dir.name + '/audio.wav'
         self.video_path = video_path
 
-        p = subprocess.Popen(["ffmpeg", "-i", video_path, "-ab", "160k", "-ac", "2" "-ar", "44100", "-vn", audio_out],
+        p = subprocess.Popen(["ffmpeg", "-i", video_path, "-ab 160k", "-ac 2", "-ar 44100", "-vn", audio_out],
                              shell=False)
         self.filename = audio_out
         p.wait()
