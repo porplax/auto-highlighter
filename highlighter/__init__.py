@@ -1,10 +1,14 @@
 import atexit
-import glob
 import logging
 import os
 import pathlib
 import platform
+import glob
+import subprocess
 import tempfile
+import random
+
+import requests
 from signal import *
 
 import click
@@ -13,24 +17,21 @@ import typer
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.prompt import Confirm
-from vosk import Model, SetLogLevel
-
+from seleniumwire import webdriver
 TEMP_DIR = tempfile.TemporaryDirectory()
 console = Console()
 app = typer.Typer()
-model = None
 
-SetLogLevel(0)
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(console=console, markup=True)]
+    level="ERROR", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(console=console, markup=True)]
 )
 
 log = logging.getLogger("highlighter")
 
-__all__ = ['analysis', 'generator']
+__all__ = ['analysis']
 
-from . import analysis, generator
+from . import analysis
 
 def exit_handler(*args):
     try:
@@ -98,8 +99,6 @@ def callback():
 @click.option('--max-highlights', '-m',
               help='stops highlighting if the amount of found highlights exceed this amount.',
               type=int, required=False, default=0)
-@click.option('--compile/--skip-compile',
-              help='whether or not i should create clips from detected moments.', default=True)
 @click.option('--detect-with-video',
               help='instead of detecting with audio, detect with video based on brightness.',
               is_flag=True)
@@ -107,23 +106,20 @@ def callback():
               help='target brightness required to highlight a moment. (0-255)',
               type=int, required=False, default=125,
               show_default=True)
-@click.option('--just-in-time-compilation', '-jit',
-              help='instead of compiling after analysis, compile as it find highlights. (only available with video detection)',
-              is_flag=True)
-@click.option('--disable-ffmpeg-output', '--no-ffmpeg', '-nf',
-              help='disables ffmpeg from outputting to terminal.')
-@click.option('--keywords', '-k',
-              help='uses vosk speech recognition to spot any keywords. highly experimental.',
-              multiple=True, required=False, default=None)
-def analyze(input, output, target, before, after, accuracy, compile, max_highlights, detect_with_video,
-            target_brightness, just_in_time_compilation, disable_ffmpeg_output, keywords):
+def analyze(input, output, target, before, after, accuracy, max_highlights, detect_with_video,
+            target_brightness):
     """analyze VOD for any highlights."""
     # todo: may be better to detect video length and then determine if the set target dB will be a problem.
-    console.clear()
-    if keywords:
-        global model
-        model = Model(lang='en-us')
-        log.info(f'[yellow italic]using speech recognition {keywords} ...')
+    path = pathlib.Path(output)
+
+    if not path.exists():
+        path.mkdir()
+
+    if os.listdir(output):
+        log.error(f'[bold]"{output}"[/][red italic] is not empty![/]')
+        exit(1)
+
+    log.info(f'i am now compiling to {output}')
 
 
     if 60.0 > target > 50.0:
@@ -157,38 +153,51 @@ def analyze(input, output, target, before, after, accuracy, compile, max_highlig
         log.info(f'minimum decibels to highlight a moment: {target}, [dim italic]with accuracy: {accuracy}[/]')
 
         log.info(f'converting [bold]"{input}"[/] to [purple].wav[/] file ...')
-        analyzer = analysis.AudioAnalysis('', target, output, accuracy, before, after, maximum_depth=max_highlights,
-                                          keywords=keywords)
+        analyzer = analysis.AudioAnalysis('', target, output, accuracy, before, after, maximum_depth=max_highlights)
         analyzer.convert_from_video(input)
         log.info(analyzer)
     else:
         log.info(f'minimum luminance to highlight a moment: {target_brightness}')
-        analyzer = analysis.VideoAnalysis(input, target_brightness, output, before, after, just_in_time_compilation,
+        analyzer = analysis.VideoAnalysis(input, target_brightness, output, before, after,
                                           maximum_depth=max_highlights)
 
     log.info('now analyzing for any moments ...')
-    moments = analyzer.analyze_cli()
-
-    if compile and not just_in_time_compilation:
-        path = pathlib.Path(output)
-
-        if not path.exists():
-            path.mkdir()
-
-
-        if os.listdir(output):
-            deletion = Confirm.ask(f'[bold]"{output}"[/][red italic] is not empty![/]\ndelete contents of {output}?')
-            if deletion:
-                files = glob.glob(output + '/*')
-                for f in files:
-                    os.remove(f)
-
-        log.info(f'i am now compiling to {output}')
-        compiler = generator.Compiler(input, output, before, after)
-        compiler.compile_all(moments)
+    analyzer.analyze_cli()
 
     log.info('[green]finished![/]')
 
+
+"""@click.command()
+def watch():
+    driver = webdriver.Firefox()
+    driver.get('https://www.twitch.tv/nickmercs')
+    c = 0
+    while True:
+        files = []
+        for idx, request in enumerate(driver.requests):
+            if request.response:
+                print(request.url)
+                if request.url.endswith('m3u8'):
+                    r = requests.get(request.url)
+                    name = random.randint(1000, 9999999)
+                    filename = TEMP_DIR.name + f'/{name}.m3u8'
+                    files.append(filename)
+                    with open(filename, 'xb') as f:
+                        f.write(r.content)
+                elif request.url.endswith('ts'):
+                    r = requests.get(request.url)
+                    name = random.randint(1000, 9999999)
+                    filename = TEMP_DIR.name + f'/{name}.ts'
+                    files.append(filename)
+                    with open(filename, 'xb') as f:
+                        f.write(r.content)
+        cmd = '|'.join(files)
+        with open('out.bat', 'w+') as f:
+            f.write(f"ffmpeg -protocol_whitelist concat,file,http,https,tcp,tls,crypto -y -i \"concat:{cmd.replace(' ', '')}\" -c copy ./segments/chunk{c}.mp4")
+        subprocess.Popen(
+            "out.bat"
+            , shell=True)
+        c += 1"""
 
 @click.command()
 @click.option('--input', '-i',
@@ -229,6 +238,7 @@ app.rich_markup_mode = "rich"
 typer_click_object = typer.main.get_command(app)
 typer_click_object.add_command(analyze, "analyze")
 typer_click_object.add_command(find_reference, "find-reference")
+typer_click_object.add_command(watch, "watch")
 
 def cli():
     typer_click_object()

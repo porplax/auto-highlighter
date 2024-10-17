@@ -1,21 +1,16 @@
 import datetime
-import glob
-import json
-import os
-import pathlib
 import struct
 import subprocess
 import tempfile
 import wave
+import shlex
 
 import cv2
 import numpy as np
 from PIL import Image
 from rich.progress import Progress
-from rich.prompt import Confirm
-from vosk import KaldiRecognizer
 
-from . import console, log, model
+from . import console, log
 
 
 class VideoAnalysis:
@@ -23,14 +18,12 @@ class VideoAnalysis:
                  filename: str,
                  target_brightness: int,
                  compile_output: str,
-                 start_point, end_point,
-                 jit, **kwargs):
+                 start_point, end_point, **kwargs):
         self.filename = filename
         self.target_brightness = target_brightness
         self.compile_output = compile_output
         self.start_point = start_point
         self.end_point = end_point
-        self.jit = jit
 
         self.prioritize_speed = None
         if 'prioritize_speed' in kwargs.keys():
@@ -40,19 +33,6 @@ class VideoAnalysis:
         if 'maximum_depth' in kwargs.keys():
             if kwargs['maximum_depth'] != 0:
                 self.maximum_depth = kwargs['maximum_depth']
-
-        if self.jit:
-            path = pathlib.Path(compile_output)
-            if not path.exists():
-                path.mkdir()
-
-            if os.listdir(compile_output):
-                deletion = Confirm.ask(
-                    f'[bold]"{compile_output}"[/][red italic] is not empty![/]\ndelete contents of {compile_output}?> ')
-                if deletion:
-                    files = glob.glob(compile_output + '/*')
-                    for f in files:
-                        os.remove(f)
 
         self.vidcap = cv2.VideoCapture(filename)
 
@@ -106,37 +86,24 @@ class VideoAnalysis:
                                 return result
 
                         if luminance >= self.target_brightness:
-                            if not self.jit:
-                                if any(previous in captured for previous in range(second - self.start_point, second)):
-                                    # avoid highlighting moments that are too close to each other.
-                                    captured.append(second)
-                                    progress.update(duration_task,
-                                                    description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
-                                else:
-                                    captured.append(second)
-                                    result[second] = {
-                                        'time': f'{second}',
-                                        'luminance': luminance
-                                    }
+                            if any(previous in captured for previous in range(second - self.start_point, second)):
+                                captured.append(second)
+                                progress.update(duration_task,
+                                                description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
                             else:
-                                if any(previous in captured for previous in range(second - self.start_point, second)):
-                                    captured.append(second)
-                                    progress.update(duration_task,
-                                                    description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=second)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
-                                else:
-                                    captured.append(second)
-                                    result[second] = {
-                                        'time': f'{second}',
-                                        'luminance': luminance
-                                    }
-                                    p = subprocess.Popen(
-                                        f'ffmpeg -i \"{self.filename}\" -ss {second - self.start_point} -to {second + self.end_point} -c copy {self.compile_output}/{second}-({str(datetime.timedelta(seconds=second)).replace(":", " ")}).mp4',
-                                        stdout=subprocess.DEVNULL,
-                                        stderr=subprocess.STDOUT)
-                                    p.wait()
-                                    p.kill()
-                                    progress.update(duration_task,
-                                                    description=f'[bold yellow]{len(list(result.keys()))}[/] [dim]highlighted moments so far ...')
+                                captured.append(second)
+                                result[second] = {
+                                    'time': f'{second}',
+                                    'luminance': luminance
+                                }
+                                p = subprocess.Popen(
+                                    f'ffmpeg -i \"{self.filename}\" -ss {second - self.start_point} -to {second + self.end_point} -c copy {self.compile_output}/{second}-({str(datetime.timedelta(seconds=second)).replace(":", " ")}).mp4',
+                                    stdout=subprocess.DEVNULL,
+                                    stderr=subprocess.STDOUT)
+                                p.wait()
+                                p.kill()
+                                progress.update(duration_task,
+                                                description=f'[bold yellow]{len(list(result.keys()))}[/] [dim]highlighted moments so far ...')
 
                     success, image = self.vidcap.read()
                     progress.update(duration_task, advance=1.0)
@@ -155,7 +122,7 @@ class AudioAnalysis:
         self.video_path = ''
         self.filename = filename
         self.target_decibel = target_decibel
-        self.compile_output = compile_output
+        self.compile_output = compile_output.replace('\\', '/')
         self.accuracy = accuracy
         self.start_point = start_point
         self.end_point = end_point
@@ -186,6 +153,15 @@ class AudioAnalysis:
     def _split(self, buffer):
         return np.array_split(np.array(buffer), self.accuracy)
 
+    def _generate(self, second: int):
+        where = str(datetime.timedelta(seconds=second)).replace(":", " ")
+        p = subprocess.Popen(shlex.split(f'ffmpeg -i \"{self.video_path}\" -ss {second - self.start_point} -to {second + self.end_point} -c copy \"{self.compile_output}/{second}-({where}).mp4\"'),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            shell=False)
+        p.wait()
+        p.kill()
+
     def convert_from_video(self, video_path):
         """
         Converts a video to .wav format using ffmpeg,
@@ -200,13 +176,15 @@ class AudioAnalysis:
         :param video_path:
         :return:
         """
-        audio_out = self.temp_dir.name + '/audio.wav'
+        video_path = str(video_path).replace('\\', '/')
+        audio_out = str(self.temp_dir.name + '/audio.wav').replace('\\', '/')
         self.video_path = video_path
-
-        p = subprocess.Popen(["ffmpeg", "-i", video_path, "-ab 160k", "-ac 2", "-ar 44100", "-vn", audio_out],
+        p = subprocess.Popen(shlex.split(f'ffmpeg -i \"{video_path}\" -ab 160k -ac 2 -ar 44100 -vn {audio_out}'),
                              shell=False)
         self.filename = audio_out
         p.wait()
+        p.kill()
+        console.clear()
 
         self.wave_data = wave.open(self.filename, 'r')
         self.length = self.wave_data.getnframes() / self.wave_data.getframerate()
@@ -265,25 +243,12 @@ class AudioAnalysis:
         result = {}
         captured = []
 
-        rec = None
-        if not model is None:
-            rec = KaldiRecognizer(model, self.wave_data.getframerate())
-            rec.SetWords(True)
-            rec.SetPartialWords(True)
-
         with Progress(console=console, refresh_per_second=15) as progress:
-
             duration_task = progress.add_task('[dim]processing audio ...', total=int(self.length))
             for _i in range(0, int(self.length)):
                 # read each second of the audio file, and split it for better accuracy.
                 buffered = self._read()
                 chunks = self._split(buffered[1])
-                subtitle = ""
-
-                if not rec is None:
-                    if rec.AcceptWaveform(buffered[0]):
-                        sr_result = rec.Result()
-                        subtitle = str(json.loads(sr_result)['text'])
 
                 decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
 
@@ -296,25 +261,17 @@ class AudioAnalysis:
                             self.wave_data.close()
                             return result
 
-                    if any(word in self.keywords for word in subtitle.split()):
-                        point = datetime.timedelta(seconds=_i)
-                        captured.append(_i)
-
-                        result[_i] = {
-                            'time': f"{point}",
-                            'time_with_ms': f'{point}.{ms}',
-                            'decibels': db
-                        }
-                        progress.update(duration_task,
-                                        description=f'[cyan italic]keyword recognition {self.keywords} at {point}[/] ([italic]still at[/] [bold yellow]{len(result.keys())}[/]) ...')
                     if db >= self.target_decibel:
                         if any(previous in captured for previous in range(_i - self.start_point, _i)):
                             # avoid highlighting moments that are too close to each other.
                             captured.append(_i)
                             progress.update(duration_task,
-                                            description=f'[bold red]redundancy found at [/][green]{datetime.timedelta(seconds=_i)}[/] ([italic]still at[/] [bold yellow]{len(list(result.keys()))}[/]) [dim]skipping ...')
+                                            description=f'[italic dim]skipping redundant highlight at [/][green]{datetime.timedelta(seconds=_i)}[/] ([bold yellow]{len(list(result.keys()))}[/] [dim]highlights so far[/])')
                         else:
                             point = datetime.timedelta(seconds=_i)
+                            if not _i in captured:
+                                self._generate(_i)
+
                             captured.append(_i)
 
                             result[_i] = {
@@ -322,6 +279,8 @@ class AudioAnalysis:
                                 'time_with_ms': f'{point}.{ms}',
                                 'decibels': db
                             }
+
+
                             progress.update(duration_task,
                                             description=f'[yellow bold]{len(list(result.keys()))}[/] [dim]highlighted moments so far ...')
 

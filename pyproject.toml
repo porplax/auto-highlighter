@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "vod-highlighter"
-version = "0.3.2-alpha"
-description = "tool to generate clips from a video. (mainly twitch VODs)"
+name = "auto-highlighter"
+version = "0.0.1"
+description = "automatically generate clips from VODs!"
 authors = ["porplax <saynemarsh9@gmail.com>"]
 readme = "README.md"
 packages = [{include = "highlighter"}]
@@ -12,12 +12,13 @@ numpy = "^2.1.1"
 typer = "^0.12.5"
 opencv-python = "^4.10.0.84"
 pillow = "^10.4.0"
-vosk = "^0.3.45"
-nicegui = "^2.3.0"
 pycparser = "^2.22"
+m3u8 = "^6.0.0"
+requests = "^2.32.3"
+selenium = "^4.25.0"
 
 [tool.poetry.scripts]
-vod-highlighter = 'highlighter:cli'
+auto-highlighter = 'highlighter:cli'
 
 [build-system]
 requires = ["poetry-core"]

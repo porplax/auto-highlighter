@@ -1,13 +1,15 @@
 <p align="center">
-    <img align="center" src="vod-icon.svg">
+    <img align="center" src="https://i.ibb.co/bJ1svtq/simplified-icon.png">
 </p>
 
 <p align="center">
-    CLI tool that generates clips from a video (mainly twitch VODs)
+    automatically generate clips from VODs!
 </p>
 
+![example](https://i.ibb.co/Tq3ZGVt/Animation.gif)
+
 ```commandline
-pip install vod-highligher
+pip install auto-highligher
 ```
 
 ----
@@ -19,7 +21,7 @@ pip install vod-highligher
 ## usage
 ```shell
 # analyzing a video and generating clips is easy!
-vod-highlighter analyze -i "PATH/TO/VIDEO" 
+auto-highlighter analyze -i "PATH/TO/VIDEO" 
 # OR
 python -m highlighter analyze -i "PATH/TO/VIDEO"
 ```
