@@ -238,7 +238,6 @@ app.rich_markup_mode = "rich"
 typer_click_object = typer.main.get_command(app)
 typer_click_object.add_command(analyze, "analyze")
 typer_click_object.add_command(find_reference, "find-reference")
-typer_click_object.add_command(watch, "watch")
 
 def cli():
     typer_click_object()
