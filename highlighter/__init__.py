@@ -109,7 +109,6 @@ def callback():
 def analyze(input, output, target, before, after, accuracy, max_highlights, detect_with_video,
             target_brightness):
     """analyze VOD for any highlights."""
-    # todo: may be better to detect video length and then determine if the set target dB will be a problem.
     path = pathlib.Path(output)
 
     if not path.exists():
@@ -119,33 +118,7 @@ def analyze(input, output, target, before, after, accuracy, max_highlights, dete
         log.error(f'[bold]"{output}"[/][red italic] is not empty![/]')
         exit(1)
 
-    log.info(f'i am now compiling to {output}')
-
-
-    if 60.0 > target > 50.0:
-        log.warning(f'[red italic]target dB: {target} < 60.0 is probably [bold]too low[/] !!![/]\n'
-                    '[red bold reverse]this might cause the highlighter to create too many clips and could eat up disk space![/]\n\n'
-                    'if this is wanted, ignore this warning.\n'
-                    "if you're unsure what this message means, you might want to set it higher\n"
-                    "or find the video's reference dB with the [code]find-reference[/] command.\n\n"
-                    "[italic]additionally, you can force the program to terminate if the amount of found highlights exceeds a certain amount.")
-        confirm = Confirm.ask('continue?')
-        if not confirm:
-            exit(1)
-    elif target < 50.0 and target != 0.0:
-        log.warning(f'[red italic]target dB: {target} < 50.0 is [bold]extremely low[/] !!![/]\n'
-                    '[red bold reverse blink]THIS WILL CAUSE THE HIGHLIGHTER TO CONSUME ASTRONOMICAL AMOUNTS OF DISK SPACE IF THE VIDEO IS LONG ENOUGH![/]\n\n'
-                    'if this is wanted, ignore this warning.\n'
-                    "if you're unsure what this message means, you might want to set it higher\n"
-                    "or find the video's reference dB with the [code]find-reference[/] command.\n\n"
-                    "[italic]additionally, you can force the program to terminate if the amount of found highlights exceeds a certain amount.")
-        confirm = Confirm.ask('continue?')
-        if not confirm:
-            exit(1)
-    elif target == 0.0:
-        log.error(f'[red italic]target dB: {target} is [bold]way too low and invalid.[/]')
-        exit(1)
-
+    log.info(f'i am compiling to {output}')
     log.info(f'using [bold]"{input}"[/] as [cyan]input[/] ...')
     if compile:
         log.info(f'will compile to {output} ...')
@@ -170,7 +143,7 @@ def analyze(input, output, target, before, after, accuracy, max_highlights, dete
 """@click.command()
 def watch():
     driver = webdriver.Firefox()
-    driver.get('https://www.twitch.tv/nickmercs')
+    driver.get('https://www.twitch.tv/nickmercs') # watching nickmercs lol
     c = 0
     while True:
         files = []
