@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "auto-highlighter"
+name = "auto-highlighter-py"
 version = "0.0.1"
 description = "automatically generate clips from VODs!"
 authors = ["porplax <saynemarsh9@gmail.com>"]

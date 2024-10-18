@@ -9,7 +9,7 @@
 ![example](https://i.postimg.cc/yNd9GXKf/Animation.gif)
 
 ```commandline
-pip install auto-highligher
+pip install auto-highligher-py
 ```
 
 ----
