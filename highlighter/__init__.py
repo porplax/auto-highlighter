@@ -26,7 +26,7 @@ app = typer.Typer()
 
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level="ERROR", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(console=console, markup=True)]
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(console=console, markup=True)]
 )
 
 log = logging.getLogger("highlighter")

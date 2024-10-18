@@ -14,11 +14,31 @@ pip install auto-highligher-py
 
 ----
 
-- **you must have ffmpeg installed!**
-- **python 3.11+**
-- **free disk space of at least 2GB is recommended**
+# installation
 
-## usage
+To begin using this project you must have the following installed
+onto your machine.
+
+1. [FFmpeg](https://www.ffmpeg.org/download.html) should be installed and on `PATH`. (*preferably version 7.0.0+*)
+2. [Python](https://www.python.org/downloads/release/python-31110/) 3.11+
+
+On Windows, open the start menu and type in `cmd` and open it.
+Linux users can open their terminal by doing `CTRL+ALT+T` or by finding it.
+I don't own a macbook 💀
+
+Once installed, verify that you can call each command from
+your terminal.
+
+```shell
+> python --version 
+'python 3.11.9' # or similar.
+> ffmpeg -version
+'ffmpeg version <version>-<build>...'
+```
+
+**2 gigabytes** of space is recommended.
+
+# usage
 
 ```shell
 # analyzing a video and generating clips is easy!
@@ -43,6 +63,8 @@ python -m highlighter find-reference -i "PATH/TO/VIDEO"
 ```
 
 **TL:DR:** *use this command if the highlighter is creating too many, or too little clips. this will tell you the recommended target decibel to set.*
+
+---
 
 ## :O how does it work?
 
