@@ -47,7 +47,8 @@ auto-highlighter analyze -i "PATH/TO/VIDEO"
 python -m highlighter analyze -i "PATH/TO/VIDEO"
 ```
 
-Use the `--help` option to see what else you can do! It is very customizable.
+Whenever the tool begins analyzing, it will place all generated clips in Use the `--help` option to see what else you
+can do! It is very customizable.
 
 ### adjusting to get the best results
 

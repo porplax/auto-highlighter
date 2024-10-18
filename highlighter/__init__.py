@@ -182,6 +182,10 @@ class AudioAnalysis:
         p.wait()
         p.kill()
 
+    def _get_decibel_from_chunks(self, chunks):
+        decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
+        return decibels
+
     def convert_from_video(self, video_path):
         """
         Converts a video to .wav format using ffmpeg,
@@ -270,7 +274,7 @@ class AudioAnalysis:
                 buffered = self._read()
                 chunks = self._split(buffered[1])
 
-                decibels = [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in chunks]
+                decibels = self._get_decibel_from_chunks(chunks)
 
                 decibels_iter = iter(decibels)
                 for ms, db in enumerate(decibels_iter):
@@ -435,7 +439,7 @@ def analyze(input, output, target, before, after, accuracy, max_highlights, dete
     log.info('now analyzing for any moments ...')
     analyzer.analyze_cli()
 
-    log.info('[green]finished![/]')
+    log.info(f'[green]success! all clips should be found in the {output} folder.[/]')
 
 
 """@click.command()

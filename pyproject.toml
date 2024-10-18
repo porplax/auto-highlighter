@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-highlighter-py"
-version = "0.0.1"
+version = "0.0.3"
 description = "automatically generate clips from VODs!"
 authors = ["porplax <saynemarsh9@gmail.com>"]
 readme = "README.md"
