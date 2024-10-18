@@ -47,7 +47,9 @@ auto-highlighter analyze -i "PATH/TO/VIDEO"
 python -m highlighter analyze -i "PATH/TO/VIDEO"
 ```
 
-Whenever the tool begins analyzing, it will place all generated clips in Use the `--help` option to see what else you
+Whenever the tool begins analyzing, it will place all generated clips in `highlights` folder, or
+in the folder you set the highlighter to place the clips at.
+Use the `--help` option to see what else you
 can do! It is very customizable.
 
 ### adjusting to get the best results
