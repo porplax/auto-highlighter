@@ -23,7 +23,7 @@ As an editor for multiple streamers, I am often tasked with having to look throu
 hours of content to find a clip to create a TikTok from. So this tool gets the job done in
 minutes.
 
-[![demo.gif](https://i.postimg.cc/Cx0GWLf2/demo.gif)](https://postimg.cc/tYrn6bkd)
+![demo.gif](https://i.postimg.cc/Cx0GWLf2/demo.gif)
 
 It saves detected clips to a folder for you to look through. By default, it is the `highlights` folder.
 
