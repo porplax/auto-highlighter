@@ -140,5 +140,5 @@ clips from highlights.
 ## to-do
 
 - [ ] Optimize decibel algorithm.
-- [ ] Implement threading for clip generation.
+- [X] Implement threading for clip generation.
 - [ ] Add `watch` function, which can be used to create clips from ongoing streams.
