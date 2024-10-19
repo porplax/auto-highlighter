@@ -2,9 +2,11 @@
     <img align="center" src="https://i.ibb.co/bJ1svtq/simplified-icon.png">
 </p>
 
-<p align="center">
-    automatically generate clips from VODs!
-</p>
+<div align="center">
+
+# ⚡auto-highlighter⚡
+
+</div>
 
 ![example](https://i.postimg.cc/yNd9GXKf/Animation.gif)
 
@@ -13,6 +15,28 @@ pip install auto-highligher-py
 ```
 
 ----
+
+`auto-highlighter` is a tool I developed to assist in video editing. It looks through hours of a
+video for you and finds any clips that can be used for a TikTok or editing.
+
+As an editor for multiple streamers, I am often tasked with having to look through
+hours of content to find a clip to create a TikTok from. So this tool gets the job done in
+minutes.
+
+[![demo.gif](https://i.postimg.cc/Cx0GWLf2/demo.gif)](https://postimg.cc/tYrn6bkd)
+
+It saves detected clips to a folder for you to look through. By default, it is the `highlights` folder.
+
+# use cases
+
+With this tool, you can easily find clips that otherwise would've taken hours.
+It can:
+
+- Automatically detect any possible clips by audio / video.
+- Save these clips to a folder for manual review.
+- The clips will be in the original resolution as the VOD.
+- Length of these clips can be customized.
+- Can generate from any format.
 
 # installation
 
@@ -29,6 +53,12 @@ I don't own a macbook 💀
 Once installed, verify that you can call each command from
 your terminal.
 
+Then using `pip`, install `auto-highlighter`.
+
+```shell
+> pip install auto-highlighter-py
+```
+
 ```shell
 > python --version 
 'python 3.11.9' # or similar.
@@ -41,10 +71,24 @@ your terminal.
 # usage
 
 ```shell
+ Usage: python -m highlighter [OPTIONS] COMMAND [ARGS]...
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.                                              │
+│ --show-completion             Show completion for the current shell, to copy it or customize the installation.       │
+│ --help                        Show this message and exit.                                                            │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ analyze          analyze VOD for any highlights.                                                                     │
+│ find-reference   find average decibel in video. (if you re unsure what target decibel to aim for, use this)          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+```shell
 # analyzing a video and generating clips is easy!
-auto-highlighter analyze -i "PATH/TO/VIDEO" 
+> auto-highlighter analyze -i "PATH/TO/VIDEO" 
 # OR
-python -m highlighter analyze -i "PATH/TO/VIDEO"
+> python -m highlighter analyze -i "PATH/TO/VIDEO"
 ```
 
 Whenever the tool begins analyzing, it will place all generated clips in `highlights` folder, or
@@ -98,13 +142,3 @@ clips from highlights.
 - [ ] Optimize decibel algorithm.
 - [ ] Implement threading for clip generation.
 - [ ] Add `watch` function, which can be used to create clips from ongoing streams.
-
-### ML-Based clip detection (AI)
-
-Using Machine Learning as a means of clip detection can be done. Using my clips and it's luminance and wave data as a means of clip detection. May do this soon.
-
-## roadmap
-
-- [ ] I am currently switching to rust as an alternative!
-- [ ] GUI support is on the way.
-- [ ] Documentation.
