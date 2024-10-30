@@ -80,7 +80,7 @@ Then using `pip`, install `auto-highlighter`.
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ analyze          analyze VOD for any highlights.                                                                     │
-│ find-reference   find average decibel in video. (if you re unsure what target decibel to aim for, use this)          │
+│ reference   find average decibel in video. (if you re unsure what target decibel to aim for, use this)          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -100,7 +100,7 @@ can do! It is very customizable.
 
 `auto-highlighter` will highlight moments of a given VOD based on how loud a specific point in the video is. By default, It is set to `85.0dB` and if a moment goes past this value it will be highlighted.  
 
-However this is different across each video. So if needed, you can adjust the target decibel using `-t <DECIBEL>` option. If you don't know what target decibel to aim for, using the `find-reference` command will give you information about the average decibel of the video, and the greatest decibel found.
+However this is different across each video. So if needed, you can adjust the target decibel using `-t <DECIBEL>` option. If you don't know what target decibel to aim for, using the `reference` command will give you information about the average decibel of the video, and the greatest decibel found.
 
 ```shell
 # find a target decibel

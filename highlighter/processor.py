@@ -78,6 +78,14 @@ class AudioProcessor:
         """
         return [20 * np.log10(np.sqrt(np.mean(chunk ** 2))) for chunk in c]
     
+    def get_max_decibel(self):
+        as_decibels = librosa.amplitude_to_db(self.audio)
+        return np.max(as_decibels)
+    
+    def get_avg_decibel(self):
+        as_decibels = librosa.amplitude_to_db(self.audio)
+        return np.mean(as_decibels)
+    
     def amp_iter(self):
         self._pos = 0
         while True:

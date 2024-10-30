@@ -5,6 +5,7 @@ import glob
 
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.markdown import Markdown
 
 from loguru import logger
 from typing_extensions import Annotated
@@ -19,10 +20,44 @@ DEFAULT_TEMP_DIR = tempfile.TemporaryDirectory()
 app = typer.Typer()
 
 @app.command()
+def reference(
+    path_to_video: Annotated[str, typer.Argument(help='path to the video file to use as a reference.'),]):
+    
+    video_as_path = pathlib.Path(path_to_video)
+    
+    if not video_as_path.exists():
+        logger.error(f'file does not exist: {path_to_video}')
+        exit(1)
+    
+    audio = processor.AudioProcessor(
+        processor.extract_audio_from_video(path_to_video, DEFAULT_TEMP_DIR.name)
+    )
+    
+    markdown = f"""
+# Reference Audio Analysis
+
+Using this command can provide insight on what decibel threshold to use for the analyze command.
+Here are some statistics from the reference video:
+
+- **Duration**: {audio.duration}s
+- **Sample Rate**: {audio.sample_rate} Hz
+
+## Decibel Analysis
+
+- **Average Decibel**: {audio.get_avg_decibel()} dB
+- **Maximum Decibel**: {audio.get_max_decibel()} dB
+
+It is generally recommended to set the decibel threshold for analysis right below 
+the maximum decibel. Start off with a value like *{audio.get_max_decibel() - 1.4}* dB.
+    """
+    console.print(Markdown(markdown))
+    
+
+@app.command()
 def analyze(
     path_to_video: Annotated[str, typer.Argument(help='path to the video file to analyze.'),], 
     output_directory: Annotated[str, typer.Argument(help='path to the output directory.'),], 
-    decibel_threshold: float):
+    decibel_threshold: Annotated[float, typer.Option(help='decibel threshold to use for analysis.')] = -5.0):
     
     video_as_path = pathlib.Path(path_to_video)
     output_as_path = pathlib.Path(output_directory)
