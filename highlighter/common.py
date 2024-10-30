@@ -1,5 +1,4 @@
 import random
-import numpy as np
 from difflib import SequenceMatcher
 
 from dataclasses import dataclass

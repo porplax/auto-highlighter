@@ -11,8 +11,8 @@ from typing_extensions import Annotated
 
 console = Console()
 
-__all__ = ['processor', 'common', 'analyzer', 'dataset']
-from . import processor, common, analyzer, dataset
+__all__ = ['processor', 'common', 'analyzer']
+from . import processor, common, analyzer
 
 DEFAULT_TEMP_DIR = tempfile.TemporaryDirectory()
 
@@ -57,8 +57,7 @@ def analyze(
     
     audio = processor.extract_audio_from_video(path_to_video, DEFAULT_TEMP_DIR.name)
     _a = analyzer.AudioAnalysis(path_to_video, audio, output_directory, decibel_threshold=decibel_threshold)
-    _a.analyze_as_decibel()
-    #_a.analyze_as_machine_learning()    
+    _a.crest_ceiling_algorithm()
     _a.export()
     _a.generate_all_highlights()
 

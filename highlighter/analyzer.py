@@ -1,4 +1,3 @@
-import librosa
 import datetime
 import subprocess
 import numpy as np
@@ -10,9 +9,8 @@ from rich.progress import Progress
 from rich.panel import Panel
 
 from loguru import logger
-from sklearn import linear_model
 
-from . import processor, common, dataset, console
+from . import processor, common, console
 
 class AudioAnalysisProgress(Progress):
     def get_renderables(self):
@@ -44,33 +42,7 @@ class AudioAnalysis:
         highlight = common.HighlightedMoment(position=str(datetime.timedelta(seconds=position)), decibel=decibel)
         self._captured_result[position] = highlight
     
-    def analyze_as_machine_learning(self):
-        data = iter(self._processor.amp_iter())
-        
-        active_dataset = dataset.AudioDataSet(r'C:\Users\sayne\Programming\auto-highlighter-py\dataset\active', 1.0)
-        passive_dataset = dataset.AudioDataSet(r'C:\Users\sayne\Programming\auto-highlighter-py\dataset\passive', 0.0)
-        
-        combined_dataset_samples, combined_dataset_labels = np.concatenate((active_dataset.samples, passive_dataset.samples)), np.concatenate((active_dataset.labels, passive_dataset.labels))
-        
-        logr = linear_model.LogisticRegression()
-        logr.fit(combined_dataset_samples, combined_dataset_labels)
-        
-        stream = np.array([])
-        
-        for point in data:
-            frame = point[0]
-            position = point[1]
-            
-            stream = np.concatenate((stream, frame))            
-            
-            if stream.size >= self._processor.sample_rate * 10:
-                logger.debug(f'stream size: {stream.size}\nstream: {stream}')
-                stream_audio = np.mean(librosa.feature.mfcc(y=stream, sr=self._processor.sample_rate).reshape(-1, 1))
-                logger.debug(logr.predict(stream_audio.reshape(-1, 1)).reshape(-1, 1))
-                stream = np.array([])
-        exit(1)
-    
-    def analyze_as_decibel(self):
+    def crest_ceiling_algorithm(self):
         data = iter(self._processor.decibel_iter())
         
         t0 = time.time()

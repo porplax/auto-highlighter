@@ -1,7 +1,7 @@
 [project]
 name = "auto-highlighter-py"
 version = "0.1.0"
-description = "Add your description here"
+description = "automatically clip moments from twitch VODs"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
