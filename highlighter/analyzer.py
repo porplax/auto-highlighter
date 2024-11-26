@@ -41,6 +41,42 @@ class AudioAnalysis:
     def _add_highlight(self, position: int, decibel: float):
         highlight = common.HighlightedMoment(position=str(datetime.timedelta(seconds=position)), decibel=decibel)
         self._captured_result[position] = highlight
+        
+    def _add_dynamic_highlight(self, start: int, end: int, decibel: float):
+        highlight = common.DynamicHighlightedMoment(start=start, end=end, position=str(datetime.timedelta(seconds=start)), decibel=decibel)
+        self._captured_result[start] = highlight
+    
+    def dynamic_crest_ceiling_algorithm(self):
+        data = iter(self._processor.decibel_iter())
+        
+        t_from = 0
+        t_to = 0
+        
+        t0 = time.time()
+        with AudioAnalysisProgress(console=console, transient=True, refresh_per_second=60) as progress:
+            task = progress.add_task('[dim]analyzing audio...', total=self._processor.duration)
+            
+            for point in data:
+                decibel_array = point[0]
+                position = point[1]
+                
+                max_decibel = np.max(decibel_array)
+                
+                if max_decibel >= self.decibel_threshold:
+                    if t_from == 0:
+                        t_from = position
+                    else:
+                        t_to = position
+                        if not self._already_captured(int(t_from)):
+                            self._add_dynamic_highlight(int(t_from), int(t_to), max_decibel)
+                            progress.update(task, description=f'[dim]captured[/] [yellow bold]{len(self._captured_result)}[/] [dim]highlights so far ...')
+                        t_from = 0
+                progress.update(task, advance=1.0)
+            progress.update(task, completed=True)
+            progress.remove_task(task)
+        t1 = time.time()
+        logger.info(f'analysis completed in {t1 - t0}s')
+                
     
     def crest_ceiling_algorithm(self):
         data = iter(self._processor.decibel_iter())

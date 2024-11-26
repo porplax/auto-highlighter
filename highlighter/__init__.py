@@ -57,7 +57,13 @@ the maximum decibel. Start off with a value like *{audio.get_max_decibel() - 1.4
 def analyze(
     path_to_video: Annotated[str, typer.Argument(help='path to the video file to analyze.'),], 
     output_directory: Annotated[str, typer.Argument(help='path to the output directory.'),], 
-    decibel_threshold: Annotated[float, typer.Option(help='decibel threshold to use for analysis.')] = -5.0):
+    decibel_threshold: Annotated[float, typer.Option('--decibel_threshold', '-t', help='decibel threshold to use for analysis.')] = -5.0,
+    
+    verbose: Annotated[bool, typer.Option(help='enable verbose logging.')] = False,
+    ):
+    
+    if not verbose:
+        logger.disable('highlighter')
     
     video_as_path = pathlib.Path(path_to_video)
     output_as_path = pathlib.Path(output_directory)
@@ -71,7 +77,7 @@ def analyze(
         
         for file in files_in_video_path:
             if common.similarity(file, path_to_video) > 0.90:
-                logger.info(f'Found similar file: {file}')
+                console.print(f'Found similar file: [bold green]"{file}"')
                 confirm = Prompt.ask('Did you mean this file? ([italic]skip if this is a mistake.[/])', choices=['yes', 'no', 'skip'])
                 if confirm == 'yes':
                     related_file = file

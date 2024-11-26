@@ -32,3 +32,16 @@ class HighlightedMoment:
             'position': self.position,
             'decibel': float(self.decibel)
         }
+        
+@dataclass
+class DynamicHighlightedMoment:
+    start: float = 0.0
+    end: float = 0.0
+    position: str = ''
+    decibel: float = 0.0
+    
+    def as_json(self):
+        return {
+            'position': self.position,
+            'decibel': float(self.decibel)
+        }

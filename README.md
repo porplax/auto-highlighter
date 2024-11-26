@@ -104,9 +104,9 @@ However this is different across each video. So if needed, you can adjust the ta
 
 ```shell
 # find a target decibel
-auto-highligher find-reference -i "PATH/TO/VIDEO"
+auto-highligher reference "PATH/TO/VIDEO"
 # OR
-python -m highlighter find-reference -i "PATH/TO/VIDEO"
+python -m highlighter reference "PATH/TO/VIDEO"
 ```
 
 **TL:DR:** *use this command if the highlighter is creating too many, or too little clips. this will tell you the recommended target decibel to set.*
